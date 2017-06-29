@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	    http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		">
+	 <!-- 1. 数据源 : DriverManagerDataSource -->
+
+
+	 <!-- ================================多数据源的切换=========================================================== -->
+	 <!-- oracle数据库 -->
+	 <!-- <bean id="dataOracle"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:shop" />
+		<property name="username" value="C##ceshi" />
+		<property name="password" value="ceshi" />
+	 </bean>
+	
+	 sqlserver数据库
+     <bean id="dataSqlServer" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >  
+      <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />  
+      <property name="url" value="jdbc:sqlserver://localhost:1434;databaseName=mvcTest" />  
+      <property name="username" value="sa" />  
+      <property name="password" value="123" />  
+     </bean>   -->
+     
+     <!-- mysql数据库 -->
+     <bean id="dataMysql"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/test" />
+		<property name="username" value="yand" />
+		<property name="password" value="123456" />
+	 </bean>
+  
+     <bean id="dataSource" class="yand.util.dyDataBase.DynamicDataSource">  
+      <property name="targetDataSources">  
+        <map key-type="java.lang.String">  
+           <!-- <entry value-ref="dataOracle" key="dataOracle"></entry>
+            <entry value-ref="dataSqlServer" key="dataSqlServer"></entry>-->
+            <entry value-ref="dataMysql" key="dataMysql"></entry>  
+        </map>  
+      </property>  
+    <!-- 这边用作切换数据源的配置。。。    dataOracle 和 dataSqlServer -->  
+    <property name="defaultTargetDataSource" ref="dataMysql"></property>  
+    </bean> 
+
+	<!-- ================================多数据源配置结束======================================================================== -->
+
+	<!-- myBatis 数据工厂的配置 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 加载maper中 xml路径的资源 -->
+		<property name="mapperLocations" value="classpath*:yand/mapper/xml/*Mapper.xml" />
+
+	</bean>
+	<!-- 扫描接口文件所在的包 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 这里是mapper.java的包的路径 -->
+		<property name="basePackage" value="yand.mapper"></property>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+	</bean>
+
+	<!--4. 事务管理 : DataSourceTransactionManager dataSource:引用上面定义的数据源 -->
+
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- 5. 使用声明式事务 transaction-manager：引用上面定义的事务管理器 -->
+	<tx:annotation-driven transaction-manager="txManager" />
+
+	<!-- 支持上传功能 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+
+   
+	
+	
+</beans>
